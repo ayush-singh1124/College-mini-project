@@ -1,0 +1,45 @@
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+from sklearn.preprocessing import LabelEncoder
+from sklearn.model_selection import train_test_split
+df = pd.read_csv('/Diwali Sales Data 1.csv')
+label_encoder = LabelEncoder()
+df["Product_Category"] = label_encoder.fit_transform(df["Product_Category"])
+
+# Features and target
+X = df.drop(columns=["Orders"])
+y = df["Orders"]
+df.head()
+df.shape
+df.info()
+df['Amount'] = df['Amount'].astype('int')
+df['Amount'].dtypes
+X.head()
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+import tensorflow as tf
+from tensorflow.keras.models import Sequential
+from tensorflow.keras.layers import Dense
+# Assuming X_train contains categorical columns, encode them
+for col in X_train.select_dtypes(include=['object']).columns:
+    # Create a LabelEncoder for each categorical column
+    le = LabelEncoder()
+    # Fit and transform the column in both training and test data
+    X_train[col] = le.fit_transform(X_train[col])
+
+
+# Build the model
+model = Sequential([
+    Dense(64, activation="relu", input_shape=(X_train.shape[1],)),
+    Dense(32, activation="relu"),
+    Dense(16, activation="relu"),
+    Dense(1)  # Output layer for regression
+])
+# Compile the model
+model.compile(optimizer="adam", loss="mean_squared_error", metrics=["mae"])
+X_train_np = X_train.to_numpy().astype(np.float32)  # Convert to float32
+y_train_np = y_train.to_numpy().astype(np.float32)  # Convert to float32
+
+# Now fit the model using the numpy arrays
+history=model.fit(X_train_np, y_train_np, epochs=100,validation_split=0.2) # Added validation_split=0.2
